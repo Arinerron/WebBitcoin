@@ -111,15 +111,13 @@
                             done = true;
 
                             // hash the data
-                            var shaObj = new jsSHA("SHA-256", "TEXT");
-                            shaObj.update(data);
-                            var hash = shaObj.getHash("HEX");
-
-                            localforage.setItem('hash', hash).then(function() {
-                                console.log(hash);
-                                document.getElementById("genseed").className = "hidden";
-                                document.getElementById("home").className = "";
-                                document.getElementById("seedthing").innerHTML = hash;
+                            sha256(data).then(function(hash) {
+                                localforage.setItem('hash', hash).then(function() {
+                                    console.log(hash);
+                                    document.getElementById("genseed").className = "hidden";
+                                    document.getElementById("home").className = "";
+                                    document.getElementById("seedthing").innerHTML = hash;
+                                });
                             });
                         }
                     }
