@@ -1,0 +1,136 @@
+<html>
+    <head>
+        <title>WebBitcoin</title>
+        <script type="text/javascript" src="js/bitcoinjs.min.js"></script>
+        <script type="text/javascript" src="js/sha256.js"></script>
+        <script type="text/javascript" src="js/localforage.min.js"></script>
+        <script type="text/javascript" src="js/webbitcoin.js"></script>
+        <link rel="stylesheet" type="text/css" href="css/styles.css">
+    </head>
+    <body>
+        <div id="genseed" class="hidden">
+            <center>
+                <h1>Generating seed...</h1>
+                <h3>It is recommended that you move your mouse around and press keys to generate as secure random data as possible.</h3>
+            </center>
+        </div>
+
+        <div id="login" class="hidden">
+            <center>
+                Enter seed:<br><input type="text" id="seed" name="seed" value=""> <input type="button" value="Let's go!" onclick="login()">
+                <br>Or, <input type="button" value="Create new wallet" onclick="register()">
+            </center>
+        </div>
+
+        <div id="home" class="hidden">
+            <center>
+                your seed -> <div id="seedthing" style="display: inline;"></div><br>
+                Want to log out? <input type="button" value="Logout" onclick="logout()">
+            </center>
+        </div>
+
+        <script>
+            localforage.getItem('hash').then(function(value) {
+                if(value == null) {
+                    document.getElementById("login").className = "";
+                } else {
+                    document.getElementById("home").className = "";
+                    document.getElementById("seedthing").innerHTML = value;
+                    document.write("public: " + getKeypair(value).getAddress());
+                }
+            });
+
+            function register() {
+                document.getElementById("login").className = "hidden";
+                generate();
+            }
+
+            function logout() {
+                localforage.clear();
+                document.getElementById("login").className = "";
+                document.getElementById("home").className = "hidden";
+            }
+
+            function login() {
+                seed = document.getElementById("seed").value;
+
+                localforage.setItem('hash', seed).then(function() {
+                    console.log(seed);
+                    document.getElementById("login").className = "hidden";
+                    document.getElementById("home").className = "";
+                    document.getElementById("seedthing").innerHTML = seed;
+                });
+            }
+
+            function generate() {
+                document.getElementById("genseed").className = "";
+
+                var data = "";
+                var times = 0;
+
+                var mouseX = 0;
+                var mouseY = 0;
+
+                document.onmousemove = function(e) {
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                }
+
+                var canvas = document.createElement("canvas");
+                canvas.setAttribute("width", window.innerWidth);
+                canvas.setAttribute("height", window.innerHeight);
+                canvas.setAttribute("style", "position: absolute; x:0; y:0; left:0;top:0;");
+                document.getElementById("genseed").appendChild(canvas);
+                var done = false;
+                var ctx = canvas.getContext("2d");
+                ctx.font = "20px monospace";
+                ctx.fillStyle = "#d3d3d3";
+
+                document.onkeypress = function(evt) {
+                    if(times < 400) {
+                        evt = evt || window.event;
+                        var charCode = evt.keyCode || evt.which;
+                        data += "[" + charCode + "]";
+                        ctx.fillText(String.fromCharCode(charCode), mouseX, mouseY);
+                    }
+                };
+
+                setInterval(function() {
+                    if(times < 400) {
+                        // generate secure random
+                        var buf = new Uint8Array(1);
+                        window.crypto.getRandomValues(buf);
+
+                        // add to random data
+                        data += "(" + mouseX + "," + mouseY + ")&"+ buf[0];
+
+                        // render point on screen
+                        ctx.fillRect(mouseX, mouseY, 5, 5);
+                    } else {
+                        if(!done) {
+                            done = true;
+
+                            // hash the data
+                            var shaObj = new jsSHA("SHA-256", "TEXT");
+                            shaObj.update(data);
+                            var hash = shaObj.getHash("HEX");
+
+                            localforage.setItem('hash', hash).then(function() {
+                                console.log(hash);
+                                document.getElementById("genseed").className = "hidden";
+                                document.getElementById("home").className = "";
+                                document.getElementById("seedthing").innerHTML = hash;
+                            });
+                        }
+                    }
+
+                    times++;
+                }, 20);
+            }
+
+            /*var keyPair = bitcoin.ECPair.makeRandom();
+            console.log(keyPair.toWIF());
+            console.log(keyPair.getAddress());*/
+        </script>
+    </body>
+<html>
