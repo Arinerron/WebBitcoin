@@ -2,7 +2,7 @@
     <head>
         <title>WebBitcoin</title>
         <script type="text/javascript" src="js/bitcoinjs.min.js"></script>
-        <script type="text/javascript" src="js/sha256.js"></script>
+        <!--<script type="text/javascript" src="js/sha256.js">//just comment this</script>-->
         <script type="text/javascript" src="js/localforage.min.js"></script>
         <script type="text/javascript" src="js/webbitcoin.js"></script>
         <link rel="stylesheet" type="text/css" href="css/styles.css">
@@ -36,7 +36,17 @@
                 } else {
                     document.getElementById("home").className = "";
                     document.getElementById("seedthing").innerHTML = value;
-                    document.write("public: " + getKeypair(value).getAddress());
+					
+					var chain = bitcoin.HDNode.fromSeedHex(value);
+					//console.log(chain);	//keyPair in chain.keyPair
+					
+					document.getElementById("seedthing").innerHTML +=
+					(
+						"<br><br>Private key Base58Check encoded (WIF): " + chain.keyPair.toWIF()
+						+ "<br>Address: " + chain.keyPair.getAddress()
+						+"<br>compressed: " + chain.keyPair.compressed
+						+"<br>"
+					);
                 }
             });
 
@@ -55,10 +65,21 @@
                 seed = document.getElementById("seed").value;
 
                 localforage.setItem('hash', seed).then(function() {
-                    console.log(seed);
+                    //console.log(seed);
                     document.getElementById("login").className = "hidden";
                     document.getElementById("home").className = "";
                     document.getElementById("seedthing").innerHTML = seed;
+					
+					var chain = bitcoin.HDNode.fromSeedHex(seed);
+					//console.log(chain);	//keyPair in chain.keyPair
+					
+					document.getElementById("seedthing").innerHTML +=
+					(
+						"<br><br>Private key Base58Check encoded (WIF): " + chain.keyPair.toWIF()
+						+ "<br>Address: " + chain.keyPair.getAddress()
+						+"<br>compressed: " + chain.keyPair.compressed
+						+"<br>"
+					);					
                 });
             }
 
@@ -113,10 +134,21 @@
                             // hash the data
                             sha256(data).then(function(hash) {
                                 localforage.setItem('hash', hash).then(function() {
-                                    console.log(hash);
+                                    //console.log(hash);
                                     document.getElementById("genseed").className = "hidden";
                                     document.getElementById("home").className = "";
                                     document.getElementById("seedthing").innerHTML = hash;
+									
+									var chain = bitcoin.HDNode.fromSeedHex(hash);
+									//console.log(chain);	//keyPair in chain.keyPair
+					
+									document.getElementById("seedthing").innerHTML +=
+									(
+										"<br><br>Private key Base58Check encoded (WIF): " + chain.keyPair.toWIF()
+										+ "<br>Address: " + chain.keyPair.getAddress()
+										+"<br>compressed: " + chain.keyPair.compressed
+										+"<br>"
+									);	
                                 });
                             });
                         }
@@ -126,9 +158,6 @@
                 }, 20);
             }
 
-            /*var keyPair = bitcoin.ECPair.makeRandom();
-            console.log(keyPair.toWIF());
-            console.log(keyPair.getAddress());*/
-        </script>
+			</script>
     </body>
 <html>
