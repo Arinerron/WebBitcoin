@@ -1,2 +1,2 @@
 # WebBitcoin
-A client-side web-based bitcoin wallet
+A client-side web-based bitcoin and ethereum wallet
