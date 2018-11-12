@@ -1,8 +1,10 @@
 <html>
     <head>
+		<meta charset="UTF-8">
         <title>WebBitcoin</title>
         <script type="text/javascript" src="js/bitcoinjs.min.js"></script>
-        <!--<script type="text/javascript" src="js/sha256.js">//just comment this</script>-->
+		<script type="text/javascript" src="js/web3-eth-accounts.js"></script>
+        <!--<script type="text/javascript" src="js/sha256.js">//function to get SHA-256 hash from UTF-8 encoded string</script>-->
         <script type="text/javascript" src="js/localforage.min.js"></script>
         <script type="text/javascript" src="js/webbitcoin.js"></script>
         <link rel="stylesheet" type="text/css" href="css/styles.css">
@@ -30,23 +32,51 @@
         </div>
 
         <script>
+			function keys_from_hex(hex){
+				var chain = bitcoin.HDNode.fromSeedHex(hex);
+				//console.log(chain);	//keyPair in chain.keyPair
+				
+				var privkey_WIF = chain.keyPair.toWIF();
+				document.getElementById("seedthing").innerHTML +=
+				(
+					"<br><br>BITCOIN:"
+					+"<br>Private key Base58Check encoded (WIF): " + privkey_WIF
+					+"<br>Address: " + chain.keyPair.getAddress()
+					+"<br>compressed: " + chain.keyPair.compressed
+					+"<br>"
+				);
+				
+				var account = new Web3EthAccounts();
+				
+				var priv0x = '0x0000000000000000000000000000000000000000000000000000000000000000';
+				var priv_keys_i_length = hex.length;
+				var start_position = 2+64-priv_keys_i_length;
+				var nulled_0x_priv = '';
+	
+				nulled_0x_priv = priv0x.substring(0, start_position)+hex;
+					
+				var keyPair = account.privateKeyToAccount(nulled_0x_priv);
+				var pubKey = JSON.parse(JSON.stringify(keyPair.address));
+				var privKey = JSON.parse(JSON.stringify(keyPair.privateKey));
+
+				document.getElementById("seedthing").innerHTML += (
+					"<br><br>ETHEREUM:"
+					+"<br>priv: "+privKey
+					+"<br>address: "+pubKey
+					+"<br>"
+				);
+				
+			}
+			
+			
+			
             localforage.getItem('hash').then(function(value) {
                 if(value == null) {
                     document.getElementById("login").className = "";
                 } else {
                     document.getElementById("home").className = "";
                     document.getElementById("seedthing").innerHTML = value;
-					
-					var chain = bitcoin.HDNode.fromSeedHex(value);
-					//console.log(chain);	//keyPair in chain.keyPair
-					
-					document.getElementById("seedthing").innerHTML +=
-					(
-						"<br><br>Private key Base58Check encoded (WIF): " + chain.keyPair.toWIF()
-						+ "<br>Address: " + chain.keyPair.getAddress()
-						+"<br>compressed: " + chain.keyPair.compressed
-						+"<br>"
-					);
+					keys_from_hex(value);
                 }
             });
 
@@ -69,17 +99,7 @@
                     document.getElementById("login").className = "hidden";
                     document.getElementById("home").className = "";
                     document.getElementById("seedthing").innerHTML = seed;
-					
-					var chain = bitcoin.HDNode.fromSeedHex(seed);
-					//console.log(chain);	//keyPair in chain.keyPair
-					
-					document.getElementById("seedthing").innerHTML +=
-					(
-						"<br><br>Private key Base58Check encoded (WIF): " + chain.keyPair.toWIF()
-						+ "<br>Address: " + chain.keyPair.getAddress()
-						+"<br>compressed: " + chain.keyPair.compressed
-						+"<br>"
-					);					
+					keys_from_hex(seed);					
                 });
             }
 
@@ -138,17 +158,7 @@
                                     document.getElementById("genseed").className = "hidden";
                                     document.getElementById("home").className = "";
                                     document.getElementById("seedthing").innerHTML = hash;
-									
-									var chain = bitcoin.HDNode.fromSeedHex(hash);
-									//console.log(chain);	//keyPair in chain.keyPair
-					
-									document.getElementById("seedthing").innerHTML +=
-									(
-										"<br><br>Private key Base58Check encoded (WIF): " + chain.keyPair.toWIF()
-										+ "<br>Address: " + chain.keyPair.getAddress()
-										+"<br>compressed: " + chain.keyPair.compressed
-										+"<br>"
-									);	
+									keys_from_hex(hash);	
                                 });
                             });
                         }
